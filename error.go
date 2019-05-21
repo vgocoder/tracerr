@@ -59,6 +59,17 @@ func Wrap(err error) Error {
 	return trace(err, 2)
 }
 
+func WrapSkip(err error, skip int) Error {
+	if err == nil {
+		return nil
+	}
+	e, ok := err.(Error)
+	if ok {
+		return e
+	}
+	return trace(err, skip+2)
+}
+
 // Unwrap returns the original error.
 func Unwrap(err error) error {
 	if err == nil {

@@ -181,3 +181,43 @@ func sprint(err error, nums []int, colorized bool) string {
 	}
 	return strings.Join(rows, "\n")
 }
+
+func SprintFirst(err error, nums []int, withSourceNum int, totalNum int) string {
+	if err == nil {
+		return ""
+	}
+	e, ok := err.(Error)
+	if !ok {
+		return err.Error()
+	}
+	before, after, withSource := calcRows(nums)
+	frames := e.StackTrace()
+	expectedRows := len(frames) + 1
+	if withSource {
+		expectedRows = (before+after+3)*len(frames) + 2
+	}
+	rows := make([]string, 0, expectedRows)
+	rows = append(rows, e.Error())
+	if withSource {
+		rows = append(rows, "")
+	}
+	i, j := 0, 0
+	for _, frame := range frames {
+		j++
+		if totalNum > 0 && j > totalNum {
+			break
+		}
+		message := frame.String()
+		rows = append(rows, message)
+		if withSource {
+			if withSourceNum > 0 {
+				i++
+				if i > withSourceNum {
+					withSource = false
+				}
+			}
+			rows = sourceRows(rows, frame, before, after, false)
+		}
+	}
+	return strings.Join(rows, "\n")
+}
